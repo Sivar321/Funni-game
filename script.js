@@ -64,6 +64,8 @@
         getUsernameAndStartGame();
       }
 
+    resizeCanvas();
+
       function resetGame() {
         triangle.x = canvas.width / 2;
         triangle.y = canvas.height / 2;
@@ -449,6 +451,7 @@
           dy: Math.sin(angle) * GG_ALL_GAME_CONFIG.bulletSpeed
         });
       }
+    
       playButton.addEventListener('click', startGame);
       playMultiplayerBtn.addEventListener('click', playMultiplayer);
       window.addEventListener('resize', resizeCanvas);
