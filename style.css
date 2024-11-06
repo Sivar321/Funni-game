@@ -78,15 +78,18 @@ body, html {
 }
 
 #moveJoystick {
-    background-color: rgba(0, 0, 255, 0.5);
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
 }
+
 
 #moveJoystick .joystick-knob {
     background-color: rgba(0, 0, 255, 0.8);
 }
 
 #shootJoystick {
-    position: absolute;
+    position: fixed;
     bottom: 20px;
     right: 20px;
     width: 100px;
