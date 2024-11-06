@@ -1,5 +1,5 @@
-    (function() {
-      const GG_ALL_GAME_CONFIG = {
+(function() {
+    const GG_ALL_GAME_CONFIG = {
         triangleSize: 20,
         triangleSpeed: 5,
         trailLength: 20,
@@ -19,43 +19,35 @@
         enemyBaseSpeed: 1,
         enemySpeedIncrease: 0.2,
         enemySpawnRate: 2000,
-      };
-      const MULTIPLAYER_CONFIG = {
-        serverPeerId: 'server6'
-      };
-      const $ = document.querySelector.bind(document);
-      const mainMenu = $('#mainMenu');
-      const playButton = $('#playButton');
-      const playMultiplayerBtn = $('#playMultiplayerBtn');
-      const canvas = $('#gameCanvas');
-      const ctx = canvas.getContext('2d');
-      const mobileControls = $('#mobileControls');
-      const moveJoystick = $('#moveJoystick');
-      const shootJoystick = $('#shootJoystick');
-      let triangle = {
-        x: 0,
-        y: 0,
-        dx: 0,
-        dy: 0,
-        angle: 0,
-        color: `rgb(${Math.random()*256|0},${Math.random()*256|0},${Math.random()*256|0})`,
-        username: "Player"
-      };
-      let peer, connections = {},
-        isHost = false,
-        hostConnection = null;
-      let trail = [],
-        bullets = [],
-        shockwaves = [],
-        players = {},
-        enemies = [];
-      let gameStarted = false,
-        mouseX = 0,
-        mouseY = 0,
-        isShooting = false,
-        lastBulletTime = 0,
-        lastEnemySpawnTime = 0,
-        enemiesKilled = 0;
+    };
+
+    const MULTIPLAYER_CONFIG = { serverPeerId: 'server6' };
+
+    // Initialize the main game variables and elements
+    const $ = document.querySelector.bind(document);
+    const mainMenu = $('#mainMenu');
+    const playButton = $('#playButton');
+    const playMultiplayerBtn = $('#playMultiplayerBtn');
+    const canvas = $('#gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const mobileControls = $('#mobileControls');
+    const moveJoystick = $('#moveJoystick');
+    const shootJoystick = $('#shootJoystick');
+
+    let triangle = { 
+        x: 0, 
+        y: 0, 
+        dx: 0, 
+        dy: 0, 
+        angle: 0, 
+        color: `rgb(${Math.random()*256|0},${Math.random()*256|0},${Math.random()*256|0})`, 
+        username: "Player" 
+    };
+
+    let peer, connections = {}, isHost = false, hostConnection = null;
+    let trail = [], bullets = [], shockwaves = [], players = {}, enemies = [];
+    let gameStarted = false, mouseX = 0, mouseY = 0, isShooting = false;
+    let lastBulletTime = 0, lastEnemySpawnTime = 0, enemiesKilled = 0;
       let moveJoystickTouchId = null,
         shootJoystickTouchId = null;
 
