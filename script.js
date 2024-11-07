@@ -61,10 +61,9 @@
         gameStarted = true;
         resizeCanvas();
         resetGame();
+        gameLoop();
         getUsernameAndStartGame();
       }
-
-    resizeCanvas();
 
       function resetGame() {
         triangle.x = canvas.width / 2;
@@ -193,30 +192,48 @@
         }
       }
 
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        triangle.x = canvas.width / 2;
-        triangle.y = canvas.height / 2;
-      }
-
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    triangle.x = canvas.width / 2; // Start triangle in the center
+    triangle.y = canvas.height / 2;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas(); // Call it initially
+    
+    
       function drawTriangle(player) {
-        ctx.save();
-        ctx.translate(player.x, player.y);
-        ctx.rotate(player.angle);
-        ctx.fillStyle = player.color;
-        ctx.beginPath();
-        ctx.moveTo(0, -GG_ALL_GAME_CONFIG.triangleSize);
-        ctx.lineTo(-GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2);
-        ctx.lineTo(GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.angle);
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.moveTo(0, -GG_ALL_GAME_CONFIG.triangleSize); // Top point
+    ctx.lineTo(-GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2); // Bottom left
+    ctx.lineTo(GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2); // Bottom right
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
         ctx.fillStyle = GG_ALL_GAME_CONFIG.usernameColor;
         ctx.font = GG_ALL_GAME_CONFIG.usernameFont;
         ctx.textAlign = 'center';
         ctx.fillText(player.username, player.x, player.y - GG_ALL_GAME_CONFIG.usernameOffset);
       }
+
+    function drawTriangle(player) {
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.angle);
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.moveTo(0, -GG_ALL_GAME_CONFIG.triangleSize); // Top point
+    ctx.lineTo(-GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2); // Bottom left
+    ctx.lineTo(GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2); // Bottom right
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    }
+    
 
       function drawTrail() {
         ctx.globalAlpha = 1;
@@ -319,22 +336,18 @@
         }
       }
 
-      function spawnEnemy() {
-        let x, y;
-        if (Math.random() < 0.5) {
-          // Spawn on left or right edge
-          x = Math.random() < 0.5 ? 0 : canvas.width;
-          y = Math.random() * canvas.height;
-        } else {
-          // Spawn on top or bottom edge
-          x = Math.random() * canvas.width;
-          y = Math.random() < 0.5 ? 0 : canvas.height;
-        }
-        enemies.push({
-          x,
-          y
-        });
-      }
+function spawnEnemy() {
+    let x, y;
+    if (Math.random() < 0.5) {
+        x = Math.random() < 0.5 ? 0 : canvas.width; // Spawn on left or right edge
+        y = Math.random() * canvas.height;
+    } else {
+        x = Math.random() * canvas.width;
+        y = Math.random() < 0.5 ? 0 : canvas.height; // Spawn on top or bottom edge
+    }
+    enemies.push({ x, y, size: GG_ALL_GAME_CONFIG.enemySize });
+}
+    
 
       function gameOver() {
         gameStarted = false;
@@ -356,12 +369,13 @@
         drawEnemies();
         drawTriangle(triangle);
         Object.values(players).forEach(drawTriangle);
+        enemies.forEach(drawEnemies);
         if (isShooting) shootBullet();
         if (isHost) broadcastGameState();
         else sendPlayerUpdate();
         requestAnimationFrame(gameLoop);
       }
-
+    
       function sendPlayerUpdate() {
         if (hostConnection && hostConnection.open) {
           hostConnection.send({
@@ -454,7 +468,6 @@
     
       playButton.addEventListener('click', startGame);
       playMultiplayerBtn.addEventListener('click', playMultiplayer);
-      window.addEventListener('resize', resizeCanvas);
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
       window.addEventListener('mousemove', e => {
