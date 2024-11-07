@@ -48,8 +48,15 @@
     let trail = [], bullets = [], shockwaves = [], players = {}, enemies = [];
     let gameStarted = false, mouseX = 0, mouseY = 0, isShooting = false;
     let lastBulletTime = 0, lastEnemySpawnTime = 0, enemiesKilled = 0;
+    const BROADCAST_INTERVAL = 16; // ~60fps
+let lastBroadcastTime = 0;
       let moveJoystickTouchId = null,
         shootJoystickTouchId = null;
+        
+// Remove redundant enemy forEach in gameLoop:
+// Delete or comment out this line:
+// enemies.forEach(drawEnemies);
+// as drawEnemies() is already called earlier
 
       function startGame() {
         mainMenu.style.display = 'none';
@@ -147,24 +154,19 @@
       }
 
       function setupDataHandling(conn) {
-        conn.on('data', data => {
-          if (isHost) {
-            switch (data.type) {
-              case 'join':
-                players[data.peerId] = data.player;
-                broadcastGameState();
-                break;
-              case 'update':
-                players[conn.peer] = data.player;
-                broadcastGameState();
-                break;
-              case 'leave':
-                delete players[conn.peer];
-                delete connections[conn.peer];
-                broadcastGameState();
-                break;
+    conn.on('data', data => {
+        if (data.type === 'update') {
+            if (isHost) {
+                players[conn.peer] = {
+                    ...data.player,
+                    lastUpdate: Date.now()
+                };
+            } else {
+                // Clients should use the full state from host
+                players = data.players;
+                enemies = data.enemies;
             }
-          } else if (data.type === 'update') {
+        } else if (data.type === 'update') {
             players = data.players;
             enemies = data.enemies;
           }
@@ -178,19 +180,21 @@
         });
       }
 
-      function broadcastGameState() {
-        if (isHost) {
-          players[peer.id] = triangle;
-          const gameState = {
+function broadcastGameState() {
+    const now = Date.now();
+    if (isHost && now - lastBroadcastTime >= BROADCAST_INTERVAL) {
+        players[peer.id] = triangle;
+        const gameState = {
             type: 'update',
             players,
-            enemies
-          };
-          Object.values(connections).forEach(conn => {
+            enemies: enemies.map(e => ({...e})) // Send a clean copy of enemies
+        };
+        Object.values(connections).forEach(conn => {
             if (conn.open) conn.send(gameState);
-          });
-        }
-      }
+            lastBroadcastTime = now;
+        });
+    }
+}
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -273,6 +277,10 @@ resizeCanvas(); // Call it initially
       }
 
       function updatePosition() {
+      if (!isHost && Object.keys(players).length > 1) {
+    // Non-host players should not update enemy positions
+    return;
+}
         triangle.x += triangle.dx;
         triangle.y += triangle.dy;
         triangle.x = Math.max(GG_ALL_GAME_CONFIG.triangleSize / 2, Math.min(canvas.width - GG_ALL_GAME_CONFIG.triangleSize / 2, triangle.x));
@@ -369,7 +377,6 @@ function spawnEnemy() {
         drawEnemies();
         drawTriangle(triangle);
         Object.values(players).forEach(drawTriangle);
-        enemies.forEach(drawEnemies);
         if (isShooting) shootBullet();
         if (isHost) broadcastGameState();
         else sendPlayerUpdate();
