@@ -5,7 +5,7 @@
         trailLength: 20,
         trailFadeSpeed: 0.05,
         bulletSpeed: 0,
-        bulletSize: 100,
+        bulletSize: 10000,
         bulletColor: "red",
         bulletFireRate: 0,
         shockwaveColor: "yellow",
