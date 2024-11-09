@@ -4,7 +4,7 @@
         triangleSpeed: 5,
         trailLength: 20,
         trailFadeSpeed: 0.05,
-        bulletSpeed: 30,
+        bulletSpeed: 10,
         bulletSize: 50,
         bulletColor: "red",
         bulletFireRate: 20,
