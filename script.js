@@ -17,7 +17,7 @@
         enemySize: 20,
         enemyColor: "red",
         enemyBaseSpeed: 1,
-        enemySpeedIncrease: 0.2,
+        enemySpeedIncrease: 10,
         enemySpawnRate: 0,
     };
 
