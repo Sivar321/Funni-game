@@ -14,8 +14,8 @@
         enemySize: 20,
         enemyColor: "red",
         enemyBaseSpeed: 1,
-        enemySpeedIncrease: 0.2,
-        enemySpawnRate: 2000,
+        enemySpeedIncrease: 0.01,
+        enemySpawnRate: 0,
     };
 
     const MULTIPLAYER_CONFIG = { serverPeerId: 'server6' };
