@@ -5,7 +5,7 @@
         trailLength: 20,
         trailFadeSpeed: 0.05,
         bulletSpeed: 20,
-        bulletSize: 100,
+        bulletSize: 5,
         bulletColor: "red",
         bulletFireRate: 20,
         usernameColor: "white",
@@ -14,8 +14,8 @@
         enemySize: 20,
         enemyColor: "red",
         enemyBaseSpeed: 1,
-        enemySpeedIncrease: 0.,
-        enemySpawnRate: 0,
+        enemySpeedIncrease: 0.2,
+        enemySpawnRate: 2000,
     };
 
     const MULTIPLAYER_CONFIG = { serverPeerId: 'server6' };
