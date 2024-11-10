@@ -5,7 +5,7 @@
         trailLength: 20,
         trailFadeSpeed: 0.05,
         bulletSpeed: 20,
-        bulletSize: 5,
+        bulletSize: 10,
         bulletColor: "red",
         bulletFireRate: 20,
         usernameColor: "white",
