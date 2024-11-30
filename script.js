@@ -17,7 +17,7 @@
         enemySpeedIncrease: 0.2,
         enemySpawnRate: 2000,
     };
-
+    
     const MULTIPLAYER_CONFIG = { serverPeerId: 'server6' };
 
     // Initialize the main game variables and elements
@@ -40,6 +40,14 @@
         color: `rgb(${Math.random()*256|0},${Math.random()*256|0},${Math.random()*256|0})`, 
         username: "Player" 
     };
+
+let playerBehaviorTracker = {
+    movementPatterns: [],
+    shotDirections: [],
+    lastPositions: [],
+    timeBetweenShots: [],
+    dangerLevel: 1
+};    
 
     let peer, connections = {}, isHost = false, hostConnection = null;
     let trail = [], bullets = [], shockwaves = [], players = {}, enemies = [];
@@ -276,8 +284,18 @@ resizeCanvas(); // Call it initially
       function updatePosition() {
       if (!isHost && Object.keys(players).length > 1) {
     // Non-host players should not update enemy positions
+    playerBehaviorTracker.movementPatterns.push({
+        dx: triangle.dx,
+        dy: triangle.dy,
+        timestamp: Date.now()
+    });   
+    if (playerBehaviorTracker.movementPatterns.length > 100) {
+        playerBehaviorTracker.movementPatterns.shift();
+    }
     return;
 }
+
+          
         triangle.x += triangle.dx;
         triangle.y += triangle.dy;
         triangle.x = Math.max(GG_ALL_GAME_CONFIG.triangleSize / 2, Math.min(canvas.width - GG_ALL_GAME_CONFIG.triangleSize / 2, triangle.x));
@@ -305,7 +323,7 @@ resizeCanvas(); // Call it initially
         });
         shockwaves = shockwaves.filter(shockwave => shockwave.alpha > 0);
         // Update enemy positions
-        const enemySpeed = GG_ALL_GAME_CONFIG.enemyBaseSpeed + (enemiesKilled * GG_ALL_GAME_CONFIG.enemySpeedIncrease);
+          const enemySpeed = GG_ALL_GAME_CONFIG.enemyBaseSpeed
         enemies.forEach(enemy => {
           const dx = triangle.x - enemy.x;
           const dy = triangle.y - enemy.y;
@@ -342,15 +360,60 @@ resizeCanvas(); // Call it initially
       }
 
 function spawnEnemy() {
+    // Analyze player behavior to create challenging spawn points
+    const recentMovements = playerBehaviorTracker.movementPatterns.slice(-10);
+    const averageMovementDirection = calculateAverageMovementDirection(recentMovements);
+    
     let x, y;
-    if (Math.random() < 0.5) {
-        x = Math.random() < 0.5 ? 0 : canvas.width; // Spawn on left or right edge
-        y = Math.random() * canvas.height;
+    // Use player's predicted movement to spawn enemies in unexpected locations
+    if (playerBehaviorTracker.dangerLevel > 1) {
+        x = triangle.x + (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1);
+        y = triangle.y + (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1);
     } else {
-        x = Math.random() * canvas.width;
-        y = Math.random() < 0.5 ? 0 : canvas.height; // Spawn on top or bottom edge
+        // Default spawning logic
+        if (Math.random() < 0.5) {
+            x = Math.random() < 0.5 ? 0 : canvas.width;
+            y = Math.random() * canvas.height;
+        } else {
+            x = Math.random() * canvas.width;
+            y = Math.random() < 0.5 ? 0 : canvas.height;
+        }
     }
+    
+    // Adjust difficulty based on player performance
+    adjustDifficulty();
+    
     enemies.push({ x, y, size: GG_ALL_GAME_CONFIG.enemySize });
+}
+
+function calculateAverageMovementDirection(movements) {
+    // Implement logic to analyze recent movement patterns
+    // Return a predicted movement vector
+}
+
+function adjustDifficulty() {
+    // Increase difficulty based on player's skill
+    const shotFrequency = calculateShotFrequency();
+    const movementComplexity = calculateMovementComplexity();
+    
+    // Dynamically adjust danger level
+    playerBehaviorTracker.dangerLevel = 1 + 
+        (shotFrequency * 0.5) + 
+        (movementComplexity * 0.5);
+}
+
+function calculateShotFrequency() {
+    // Calculate average time between shots
+    if (playerBehaviorTracker.timeBetweenShots.length === 0) return 0;
+    const avgTimeBetweenShots = playerBehaviorTracker.timeBetweenShots.reduce((a, b) => a + b, 0) / playerBehaviorTracker.timeBetweenShots.length;
+    return avgTimeBetweenShots < 200 ? 1 : 0; // More frequent shots increase difficulty
+}
+
+function calculateMovementComplexity() {
+    // Analyze movement patterns for predictability
+    // More unpredictable movement increases difficulty
+    // Implement complex movement pattern detection
+    return Math.random(); // Placeholder
 }
     
 
@@ -457,18 +520,25 @@ function spawnEnemy() {
         updateFunction(deltaX, deltaY, maxDistance);
       }
 
-      function shootBullet() {
-        const currentTime = Date.now();
-        if (currentTime - lastBulletTime < GG_ALL_GAME_CONFIG.bulletFireRate) return;
-        lastBulletTime = currentTime;
-        const angle = Math.atan2(mouseY - triangle.y, mouseX - triangle.x);
-        bullets.push({
-          x: triangle.x,
-          y: triangle.y,
-          dx: Math.cos(angle) * GG_ALL_GAME_CONFIG.bulletSpeed,
-          dy: Math.sin(angle) * GG_ALL_GAME_CONFIG.bulletSpeed
-        });
-      }
+function shootBullet() {
+    const currentTime = Date.now();
+    // Track shot directions and time between shots
+    playerBehaviorTracker.shotDirections.push({
+        angle: Math.atan2(mouseY - triangle.y, mouseX - triangle.x),
+        timestamp: currentTime
+    });
+
+    // Calculate time between shots
+    if (playerBehaviorTracker.shotDirections.length > 1) {
+        const lastShot = playerBehaviorTracker.shotDirections[playerBehaviorTracker.shotDirections.length - 2];
+        playerBehaviorTracker.timeBetweenShots.push(currentTime - lastShot.timestamp);
+    }
+
+    // Limit stored data
+    if (playerBehaviorTracker.shotDirections.length > 50) {
+        playerBehaviorTracker.shotDirections.shift();
+    }
+}
     
       playButton.addEventListener('click', startGame);
       playMultiplayerBtn.addEventListener('click', playMultiplayer);
