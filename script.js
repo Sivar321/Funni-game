@@ -205,7 +205,7 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas(); // Call it initially
     
     
-      function drawTriangle(player) {
+function drawTriangle(player) {
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(player.angle);
@@ -217,25 +217,13 @@ resizeCanvas(); // Call it initially
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-        ctx.fillStyle = GG_ALL_GAME_CONFIG.usernameColor;
-        ctx.font = GG_ALL_GAME_CONFIG.usernameFont;
-        ctx.textAlign = 'center';
-        ctx.fillText(player.username, player.x, player.y - GG_ALL_GAME_CONFIG.usernameOffset);
-      }
-
-    function drawTriangle(player) {
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    ctx.rotate(player.angle);
-    ctx.fillStyle = player.color;
-    ctx.beginPath();
-    ctx.moveTo(0, -GG_ALL_GAME_CONFIG.triangleSize); // Top point
-    ctx.lineTo(-GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2); // Bottom left
-    ctx.lineTo(GG_ALL_GAME_CONFIG.triangleSize / 2, GG_ALL_GAME_CONFIG.triangleSize / 2); // Bottom right
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    }
+    
+    // Draw username
+    ctx.fillStyle = GG_ALL_GAME_CONFIG.usernameColor;
+    ctx.font = GG_ALL_GAME_CONFIG.usernameFont;
+    ctx.textAlign = 'center';
+    ctx.fillText(player.username, player.x, player.y - GG_ALL_GAME_CONFIG.usernameOffset);
+}
     
 
       function drawTrail() {
@@ -499,17 +487,42 @@ function calculateMovementComplexity() {
 
 function shootBullet() {
     const currentTime = Date.now();
+    
+    // Check if enough time has passed since the last bullet
+    if (currentTime - lastBulletTime < 1000 / GG_ALL_GAME_CONFIG.bulletFireRate) return;
+    
+    // Calculate bullet direction based on mouse position
+    const angle = Math.atan2(mouseY - triangle.y, mouseX - triangle.x);
+    
+    // Track shot directions and timing
     playerBehaviorTracker.shotDirections.push({
-        angle: Math.atan2(mouseY - triangle.y, mouseX - triangle.x),
+        angle: angle,
         timestamp: currentTime
     });
+    
+    // Calculate time between shots
     if (playerBehaviorTracker.shotDirections.length > 1) {
         const lastShot = playerBehaviorTracker.shotDirections[playerBehaviorTracker.shotDirections.length - 2];
         playerBehaviorTracker.timeBetweenShots.push(currentTime - lastShot.timestamp);
     }
+    
+    // Limit stored shot directions
     if (playerBehaviorTracker.shotDirections.length > 50) {
         playerBehaviorTracker.shotDirections.shift();
     }
+    
+    // Create and add a new bullet
+    const bullet = {
+        x: triangle.x,
+        y: triangle.y,
+        dx: Math.cos(angle) * GG_ALL_GAME_CONFIG.bulletSpeed,
+        dy: Math.sin(angle) * GG_ALL_GAME_CONFIG.bulletSpeed
+    };
+    
+    bullets.push(bullet);
+    
+    // Update last bullet time
+    lastBulletTime = currentTime;
 }
     
       playButton.addEventListener('click', startGame);
