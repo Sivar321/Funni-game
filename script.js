@@ -13,9 +13,9 @@
         usernameOffset: 30,
         enemySize: 20,
         enemyColor: "red",
-        enemyBaseSpeed: 1,
+        enemyBaseSpeed: 4,
         enemySpeedIncrease: 0.2,
-        enemySpawnRate: 2000,
+        enemySpawnRate: 1600,
     };
     
     const MULTIPLAYER_CONFIG = { serverPeerId: 'server6' };
