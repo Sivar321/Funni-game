@@ -13,7 +13,7 @@
         usernameOffset: 30,
         enemySize: 20,
         enemyColor: "red",
-        enemyBaseSpeed: 4,
+        enemyBaseSpeed: 2.5,
         enemySpeedIncrease: 0.2,
         enemySpawnRate: 1600,
     };
