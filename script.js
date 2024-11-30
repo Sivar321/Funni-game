@@ -20,7 +20,6 @@
     
     const MULTIPLAYER_CONFIG = { serverPeerId: 'server6' };
 
-    // Initialize the main game variables and elements
     const $ = document.querySelector.bind(document);
     const mainMenu = $('#mainMenu');
     const playButton = $('#playButton');
@@ -58,10 +57,6 @@ let lastBroadcastTime = 0;
       let moveJoystickTouchId = null,
         shootJoystickTouchId = null;
         
-// Remove redundant enemy forEach in gameLoop:
-// Delete or comment out this line:
-// enemies.forEach(drawEnemies);
-// as drawEnemies() is already called earlier
 
       function startGame() {
         mainMenu.style.display = 'none';
@@ -117,7 +112,7 @@ let lastBroadcastTime = 0;
         });
         peer.on('error', error => {
           console.error('Error creating room:', error);
-          joinRoom(); // Switch to join room if create room fails
+          joinRoom();
         });
       }
 
@@ -167,7 +162,6 @@ let lastBroadcastTime = 0;
                     lastUpdate: Date.now()
                 };
             } else {
-                // Clients should use the full state from host
                 players = data.players;
                 enemies = data.enemies;
             }
@@ -283,7 +277,6 @@ resizeCanvas(); // Call it initially
 
       function updatePosition() {
       if (!isHost && Object.keys(players).length > 1) {
-    // Non-host players should not update enemy positions
     playerBehaviorTracker.movementPatterns.push({
         dx: triangle.dx,
         dy: triangle.dy,
@@ -322,7 +315,6 @@ resizeCanvas(); // Call it initially
           shockwave.alpha = 1 - (shockwave.radius / GG_ALL_GAME_CONFIG.shockwaveMaxRadius);
         });
         shockwaves = shockwaves.filter(shockwave => shockwave.alpha > 0);
-        // Update enemy positions
           const enemySpeed = GG_ALL_GAME_CONFIG.enemyBaseSpeed
         enemies.forEach(enemy => {
           const dx = triangle.x - enemy.x;
@@ -330,12 +322,10 @@ resizeCanvas(); // Call it initially
           const distance = Math.sqrt(dx * dx + dy * dy);
           enemy.x += (dx / distance) * enemySpeed;
           enemy.y += (dy / distance) * enemySpeed;
-          // Check for collision with player
           if (distance < GG_ALL_GAME_CONFIG.triangleSize + GG_ALL_GAME_CONFIG.enemySize / 2) {
             gameOver();
           }
         });
-        // Check for bullet-enemy collisions
         bullets = bullets.filter(bullet => {
           let bulletHit = false;
           enemies = enemies.filter(enemy => {
@@ -351,7 +341,6 @@ resizeCanvas(); // Call it initially
           });
           return !bulletHit;
         });
-        // Spawn new enemies
         const currentTime = Date.now();
         if (currentTime - lastEnemySpawnTime > GG_ALL_GAME_CONFIG.enemySpawnRate) {
           spawnEnemy();
@@ -360,17 +349,14 @@ resizeCanvas(); // Call it initially
       }
 
 function spawnEnemy() {
-    // Analyze player behavior to create challenging spawn points
     const recentMovements = playerBehaviorTracker.movementPatterns.slice(-10);
     const averageMovementDirection = calculateAverageMovementDirection(recentMovements);
     
     let x, y;
-    // Use player's predicted movement to spawn enemies in unexpected locations
     if (playerBehaviorTracker.dangerLevel > 1) {
         x = triangle.x + (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1);
         y = triangle.y + (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1);
     } else {
-        // Default spawning logic
         if (Math.random() < 0.5) {
             x = Math.random() < 0.5 ? 0 : canvas.width;
             y = Math.random() * canvas.height;
@@ -380,39 +366,30 @@ function spawnEnemy() {
         }
     }
     
-    // Adjust difficulty based on player performance
     adjustDifficulty();
     
     enemies.push({ x, y, size: GG_ALL_GAME_CONFIG.enemySize });
 }
 
 function calculateAverageMovementDirection(movements) {
-    // Implement logic to analyze recent movement patterns
-    // Return a predicted movement vector
 }
 
 function adjustDifficulty() {
-    // Increase difficulty based on player's skill
     const shotFrequency = calculateShotFrequency();
     const movementComplexity = calculateMovementComplexity();
     
-    // Dynamically adjust danger level
     playerBehaviorTracker.dangerLevel = 1 + 
         (shotFrequency * 0.5) + 
         (movementComplexity * 0.5);
 }
 
 function calculateShotFrequency() {
-    // Calculate average time between shots
     if (playerBehaviorTracker.timeBetweenShots.length === 0) return 0;
     const avgTimeBetweenShots = playerBehaviorTracker.timeBetweenShots.reduce((a, b) => a + b, 0) / playerBehaviorTracker.timeBetweenShots.length;
     return avgTimeBetweenShots < 200 ? 1 : 0; // More frequent shots increase difficulty
 }
 
 function calculateMovementComplexity() {
-    // Analyze movement patterns for predictability
-    // More unpredictable movement increases difficulty
-    // Implement complex movement pattern detection
     return Math.random(); // Placeholder
 }
     
@@ -522,19 +499,14 @@ function calculateMovementComplexity() {
 
 function shootBullet() {
     const currentTime = Date.now();
-    // Track shot directions and time between shots
     playerBehaviorTracker.shotDirections.push({
         angle: Math.atan2(mouseY - triangle.y, mouseX - triangle.x),
         timestamp: currentTime
     });
-
-    // Calculate time between shots
     if (playerBehaviorTracker.shotDirections.length > 1) {
         const lastShot = playerBehaviorTracker.shotDirections[playerBehaviorTracker.shotDirections.length - 2];
         playerBehaviorTracker.timeBetweenShots.push(currentTime - lastShot.timestamp);
     }
-
-    // Limit stored data
     if (playerBehaviorTracker.shotDirections.length > 50) {
         playerBehaviorTracker.shotDirections.shift();
     }
