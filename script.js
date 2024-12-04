@@ -337,26 +337,23 @@ function drawTriangle(player) {
       }
 
 function spawnEnemy() {
-    const recentMovements = playerBehaviorTracker.movementPatterns.slice(-10);
-    const averageMovementDirection = calculateAverageMovementDirection(recentMovements);
+    const minSpawnDistance = Math.max(canvas.width, canvas.height) * 0.3; // Minimum 30% of screen width/height
+    const maxSpawnDistance = Math.max(canvas.width, canvas.height) * 0.7; // Maximum 70% of screen width/height
     
     let x, y;
-    if (playerBehaviorTracker.dangerLevel > 1) {
-        x = triangle.x + (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1);
-        y = triangle.y + (Math.random() * 200 - 100) * (Math.random() > 0.5 ? 1 : -1);
-    } else {
-        if (Math.random() < 0.5) {
-            x = Math.random() < 0.5 ? 0 : canvas.width;
-            y = Math.random() * canvas.height;
-        } else {
-            x = Math.random() * canvas.width;
-            y = Math.random() < 0.5 ? 0 : canvas.height;
+    const angle = Math.random() * Math.PI * 2;
+    const distance = minSpawnDistance + Math.random() * (maxSpawnDistance - minSpawnDistance);
+    
+    x = triangle.x + Math.cos(angle) * distance;
+    y = triangle.y + Math.sin(angle) * distance;
+    
+    // Ensure enemy is within canvas bounds
+    x = Math.max(GG_ALL_GAME_CONFIG.enemySize / 2, Math.min(canvas.width - GG_ALL_GAME_CONFIG.enemySize / 2, x));
+    y = Math.max(GG_ALL_GAME_CONFIG.enemySize / 2, Math.min(canvas.height - GG_ALL_GAME_CONFIG.enemySize / 2, y));
     
     adjustDifficulty();
     
-    enemies.push({ x, y, size: GG_ALL_GAME_CONFIG.enemySize })
-        }
-    }
+    enemies.push({ x, y, size: GG_ALL_GAME_CONFIG.enemySize });
 }
 
 function calculateAverageMovementDirection(movements) {
